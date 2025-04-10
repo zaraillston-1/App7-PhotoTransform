@@ -101,8 +101,9 @@
           contextBlue.clearRect(0, 0, canvasBlue.width, canvasBlue.height);
 
           contextBlue.drawImage(img, 0, 0, img.naturalHeight, 0, 0, 600, 500);
-         
-          
+          /* Get image data from the second canvas */
+          var imageData = contextBlue.getImageData(0, 0, 600, 500);
+          var data = imageData.data;
           
           
           

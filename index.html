@@ -125,21 +125,21 @@
       } //  end of reader.onload
       
       reader.readAsDataURL(file);
-    } // end of the if statement checking that file is an image
-    else
-    {
-      // this is what happens if the orignial file selected is not an image file
-      messageDisplayArea.innerHTML = "File not supported!"
-    } // end of the else statement if file in NOT an image
-  }); // end of the fileInput.addEventListener function
- } // end of the window.onload function
- </script>
- </head>
+     } // end of the if statement checking that file is an image
+      else
+     {
+       // this is what happens if the orignial file selected is not an image file
+       messageDisplayArea.innerHTML = "File not supported!"
+      } // end of the else statement if file in NOT an image
+    }); // end of the fileInput.addEventListener function
+   } // end of the window.onload function
+  </script>
+</head>
 
- <body>
+<body>
   <div data-role="page">
     <div data-role="header">
-    <h1>Primary Colors</h1></div><!-- /header -->
+     <h1>Primary Colors</h1></div><!-- /header -->
     <div data-role="content">	
       <h2>Push button to take picture.</h2>
       <div>
@@ -147,8 +147,13 @@
         <input type="file" id="fileInput" STYLE="background-color: #FF6600;">
       </div>
       <div id="messageDisplayArea"></div>
-      
+
+     <!-- First Canvas: Original Image -->
       <canvas id="myCanvas" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas>
+
+     <!-- Second Canvas: Only blue intensities -->
+      <canvas id="myCanvasBlue" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas>
+     
       <script> /* This script initiates the cavas and puts the text on the canvas "myCanvas" */
         var canvas = document.getElementById('myCanvas');
         var context = canvas.getContext("2d");

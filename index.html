@@ -104,8 +104,11 @@
           /* Get image data from the second canvas */
           var imageData = contextBlue.getImageData(0, 0, 600, 500);
           var data = imageData.data;
-          
-          
+          /* Modify the image data to show only blue intensities */
+          for (var i = 0; i < data.length; i += 4) {
+           var red = data[i];  //red value
+           var green = data[i + 1];  //green value
+           var blue = data[i + 2];  //blue (keep it as is)
           
         } // end of img.onload
         

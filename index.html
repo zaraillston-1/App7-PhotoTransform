@@ -94,13 +94,14 @@
         var img = new Image();
         img.onload = function() {
           /*This finally draws the image onto the first drawing canvas. The specific canvas is referred to by "context". This is established down in the HTML part of the file just under the first <canvas> tag. If we weren't worried about fixing an iPhone bug we would use context.drawImage(image, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500) instead of drawImageIOSFix */
-        
           drawImageIOSFix(context,img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500);
+          /*Draw only blue intensities on the second canvas. */
+          var canvasBlue = document.getElementById('myCanvasBlue');
+          var contextBlue = canvasBlue.getContext('2d');
+          contextBlue.clearRect(0, 0, canvasBlue.width, canvasBlue.height);
 
-          /*  +++++++++++++++ BEGIN IMAGE PROCESSING +++++++++++++++ */
-          /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-
-          /* PUT ANY CHANGES TO THE JAVASCRIPT HERE  */
+          contextBlue.drawImage(img, 0, 0, img.naturalHeight, 0, 0, 600, 500);
+         
           
           
           

@@ -109,7 +109,16 @@
            var red = data[i];  //red value
            var green = data[i + 1];  //green value
            var blue = data[i + 2];  //blue (keep it as is)
-          
+             /* Set red and green to 0, keep blue */
+                data[i] = 0;           // Red
+                data[i + 1] = 0;       // Green
+                data[i + 2] = blue;    // Blue (keep it as is)
+              }
+
+           /* Put the modified image data back on the canvas */
+              contextBlue.putImageData(imageData, 0, 0);
+            }
+       
         } // end of img.onload
         
         img.src = reader.result;

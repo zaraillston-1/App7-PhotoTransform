@@ -2,16 +2,16 @@
 <html lang="en">
 
 <!-- The following code has been developed by students and/or researchers of the Freshman Research Initiative, DIY Diagnostics Stream at The University of Texas at Austin.  This code is shared for demonstration purposes and should not be considered a product -- it is for entertainment purposes only.  Any user of this code does so at their own risk. Members of the DIY Stream, FRI, and The University of Texas system are not liable for anything related to this code.
-
+  
   THIS CODE SHOULD NOT BE USED TO DIAGNOSE ANY KIND OF MEDICAL CONDITION.
-
+  
   Further Information:
   http://cns.utexas.edu/fri
-
+  
   Research Educator:
   Timothy E. Riedel
   triedel@utexas.edu
-
+  
   Authors in chronological order of contribution:
   Author 1: Timothy E. Riedel
   Author 2: Zara Illston
@@ -24,114 +24,105 @@
   http://stackoverflow.com/questions/11929099/html5-canvas-drawimage-ratio-bug-ios
   
   Brief Description of Goal of Code:
-  blah, blah, blah,
+  This code allows users to upload any photo or image, which is then displayed on two separate canvases: one showing the original image and the other displaying only the blue intensity of the image. This code is designed to work on laptops, tablets, and IOS devices.
  
   Known Issues:
-  blah, blah, blah, blah
--->
+  The images on IOS devices are still a little bit squished, but that has to do with phone size and is minimized as possible with the code. The layout is also different on IOS devices and laptops because of screen size.
 
 <head>
-  <meta charset="utf-8">
-  <title>Photo Transform</title>
-  <meta name="viewport" content="width=device-width, initial-scale=.7">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="https://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
-  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-  <script src="https://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
+  <meta charset="utf-8"> <!-- character encoding for the HTML document. -->
+  <title>Photo Transform</title> <!-- title of the webpage displayed in the browser's tab. -->
+  <meta name="viewport" content="width=device-width, initial-scale=.7"> <!-- creates scaling and responsiveness on mobile devices. -->
+  <meta name="apple-mobile-web-app-capable" content="yes"> <!-- allows the app to be run in fullscreen mode on iOS devices. -->
+  <link rel="stylesheet" href="https://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" /> <!-- mobile-specific CSS library to style the page. -->
+  <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script> <!-- includes jQuery library -->
+  <script src="https://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script> <!-- includes jQuery Mobile for mobile devices -->
 
   <script>
-    var docMod = document.lastModified; // gets last modified date and time of the index.html file
-    console.log("This file last modified  " + docMod); // displays last modified date and time in the javascipt browser console
+    var docMod = document.lastModified; /* Retrieves the last modified date and time of the document (index.html). */
+    console.log("This file last modified  " + docMod); /* Logs the last modified date and time to the browser's console. */
     
-/* detectVerticalSquash & drawImageIOSFix = are functions that are critical due to a flaw in the iPhone camera software that squishes any photos displayed on an HTML5 canvas element. https://github.com/stomita/ios-imagefile-megapixel */
- function detectVerticalSquash(img) {
-  var iw = img.naturalWidth, ih = img.naturalHeight;
-  var canvas = document.createElement('canvas');
-  canvas.width = 1;
-  canvas.height = ih;
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-  var data = ctx.getImageData(0, 0, 1, ih).data;
-  var sy = 0;
-  var ey = ih;
-  var py = ih;
-  while (py > sy) {
-   var alpha = data[(py - 1) * 4 + 3];
-   if (alpha === 0) {
-    ey = py;
-   } 
-   else {
-    sy = py;
-   }
-   py = (ey + sy) >> 1;
-  }
-  var ratio = (py / ih);
-  return (ratio===0)?1:ratio;
- }
+    /* detectVerticalSquash & drawImageIOSFix = are functions that are critical due to a flaw in the iPhone camera software that squishes any photos displayed on an HTML5 canvas element. https://github.com/stomita/ios-imagefile-megapixel */
+    function detectVerticalSquash(img) { /* detects vertical squashing on iOS devices. */
+      var iw = img.naturalWidth, ih = img.naturalHeight; /* sets natural width and height of the image. */
+      var canvas = document.createElement('canvas'); /* creates an off-screen canvas. */
+      canvas.width = 1; /* sets the width of the canvas to 1 pixel. */
+      canvas.height = ih; /* sets the height of the canvas to the image height. */
+      var ctx = canvas.getContext('2d'); /* sets the 2D drawing context of the canvas. */
+      ctx.drawImage(img, 0, 0); /* draws the image onto the canvas. */
+      var data = ctx.getImageData(0, 0, 1, ih).data; /* retrieves pixel data from the canvas. */
+      var sy = 0; /* the starting point for scanning vertically. */
+      var ey = ih; /* the ending point for scanning vertically. */
+      var py = ih; /* the current point being checked for transparency. */
+      while (py > sy) { /* scans through the image from bottom to top to detect transparent areas. */
+        var alpha = data[(py - 1) * 4 + 3]; /* checks the transparency of the pixel at the current position. */
+        if (alpha === 0) { /* if alpha is 0 (fully transparent), adjust the end point. */
+          ey = py;
+        } else { /* if alpha is non-zero, adjust the start point. */
+          sy = py;
+        }
+        py = (ey + sy) >> 1; /* adjusts the midpoint and continues the search. */
+      }
+      var ratio = (py / ih); /* calculates the ratio of vertical squashing. */
+      return (ratio === 0) ? 1 : ratio; /* returns the squashing ratio, defaulting to 1 if no squashing is detected. */
+    }
 
- function drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
-  var vertSquashRatio = detectVerticalSquash(img);
-  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
- }
-/* window.onload necessary to keep javascripts from running before the app gets a chance to load entirely. */
-    window.onload = function () {
-      var fileInput = document.getElementById('fileInput');
-      var messageDisplayArea = document.getElementById('messageDisplayArea');
-/* fileInput.addEventListener looks for any change in the <input> tag indicating that the user has selected a file (picture). */
-      fileInput.addEventListener('change', function (e) {
-        var file = fileInput.files[0];
-        var imageType = /image.*/;
-/* if (file.type.match(imageType)) checks that the selected file is indeed an image. */
-        if (file.type.match(imageType)) {
-        /* new FileReader(); and reader.onload start some kind of file reading process in javaScript. I do not understand why this is necessary although it may simply slow things down to let the image load. */  
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            /* messageDisplayArea.innerHTML not needed but allows you to send a message at this point in the program. */
-            messageDisplayArea.innerHTML = "You picked an image!";
-            /* new Image() and img.onload start some kind of new image creation process in javaScript. I do not understand why this is necessary although it may simply slow things down to let the image load. */
-            var img = new Image();
-            img.onload = function () {
-              /*This finally draws the image onto the first drawing canvas. The specific canvas is referred to by "context". This is established down in the HTML part of the file just under the first <canvas> tag. If we weren't worried about fixing an iPhone bug we would use context.drawImage(image, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500) instead of drawImageIOSFix */
-              var canvas = document.getElementById('myCanvas');
-              var context = canvas.getContext("2d");
+    function drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) { /* function to fix vertical squashing in iOS. */
+      var vertSquashRatio = detectVerticalSquash(img); /* detects vertical squash ratio. */
+      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio); /* draws the image onto the canvas with corrected height. */
+    }
+    
+    /* window.onload necessary to keep javascripts from running before the app gets a chance to load entirely. */
+    window.onload = function () { /* function that runs once the window is fully loaded. */
+      var fileInput = document.getElementById('fileInput'); /* gets the file input element. */
+      var messageDisplayArea = document.getElementById('messageDisplayArea'); /* gets the area to display messages to the user. */
+      /* fileInput.addEventListener looks for any change in the <input> tag indicating that the user has selected a file (picture). */
+      fileInput.addEventListener('change', function (e) { /* listens for a file selection by the user. */
+        var file = fileInput.files[0]; /* retrieves the selected file. */
+        var imageType = /image.*/; /* defines a regular expression to match image file types. */
+        /* if (file.type.match(imageType)) checks that the selected file is indeed an image. */
+        if (file.type.match(imageType)) { /* if the selected file is an image, proceed. */
+          var reader = new FileReader(); /* creates a new FileReader to read the file. */
+          reader.onload = function (e) { /* function that runs once the file has been read. */
+            messageDisplayArea.innerHTML = "You picked an image!"; /* displays a message confirming image selection. */
+            var img = new Image(); /* creates a new image element. */
+            img.onload = function () { /* function that runs once the image has loaded. */
+              var canvas = document.getElementById('myCanvas'); /* gets the canvas where the image will be drawn. */
+              var context = canvas.getContext("2d"); /* gets the 2D context of the canvas. */
 
-              // Clear the first canvas
-              context.clearRect(0, 0, canvas.width, canvas.height);
-              drawImageIOSFix(context, img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500);
+              context.clearRect(0, 0, canvas.width, canvas.height); /* clears any previous content on the canvas. */
+              drawImageIOSFix(context, img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500); /* draws the image with a fix for iOS squashing. */
 
-              // Draw the image on the second canvas (blue intensities)
-              var canvasBlue = document.getElementById('myCanvasBlue');
-              var contextBlue = canvasBlue.getContext('2d');
-              contextBlue.clearRect(0, 0, canvasBlue.width, canvasBlue.height);
-              contextBlue.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500);
+              var canvasBlue = document.getElementById('myCanvasBlue'); /* gets the second canvas to show blue intensities. */
+              var contextBlue = canvasBlue.getContext('2d'); /* gets the 2D context of the second canvas. */
+              contextBlue.clearRect(0, 0, canvasBlue.width, canvasBlue.height); /* clears any previous content on the second canvas. */
+              contextBlue.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, 600, 500); /* draws the image onto the second canvas. */
 
-              // Modify the image data to show only blue intensities
-              var imageData = contextBlue.getImageData(0, 0, 600, 500);
-              var data = imageData.data;
+              var imageData = contextBlue.getImageData(0, 0, 600, 500); /* gets the pixel data from the second canvas. */
+              var data = imageData.data; /* accesses the pixel data. */
 
-              for (var i = 0; i < data.length; i += 4) {
-                var red = data[i];    // Red value
-                var green = data[i + 1];  // Green value
-                var blue = data[i + 2];  // Blue value (keep as is)
+              for (var i = 0; i < data.length; i += 4) { /* loops through each pixel. */
+                var red = data[i]; /* red value. */
+                var green = data[i + 1]; /* green value. */
+                var blue = data[i + 2]; /* blue value. */
 
-                // Set red and green to 0, keep blue
-                data[i] = 0;        // Red
-                data[i + 1] = 0;    // Green
-                data[i + 2] = blue; // Blue (retain)
+                data[i] = 0; /* sets the red value to 0 (removes red). */
+                data[i + 1] = 0; /* sets the green value to 0 (removes green). */
+                data[i + 2] = blue; /* keeps the blue value as is. */
               }
 
-              contextBlue.putImageData(imageData, 0, 0);
+              contextBlue.putImageData(imageData, 0, 0); /* updates the second canvas with the modified pixel data. */
             }
-            img.src = reader.result;
+            img.src = reader.result; /* sets the source of the image to the data URL of the file. */
           }
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(file); /* reads the file as a data URL. */
         } else {
-          messageDisplayArea.innerHTML = "File not supported!";
+          messageDisplayArea.innerHTML = "File not supported!"; /* displays a message if the selected file is not an image. */
         }
       });
     }
 
-    function detectVerticalSquash(img) {
+    function detectVerticalSquash(img) { /* function to detect vertical squash again (duplicate of earlier function). */
       var iw = img.naturalWidth, ih = img.naturalHeight;
       var canvas = document.createElement('canvas');
       canvas.width = 1;
@@ -155,7 +146,7 @@
       return (ratio === 0) ? 1 : ratio;
     }
 
-    function drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+    function drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) { /* draw image with fixed vertical ratio. */
       var vertSquashRatio = detectVerticalSquash(img);
       ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
     }
@@ -165,44 +156,44 @@
 <body>
   <div data-role="page">
     <div data-role="header">
-      <h1>Primary Colors</h1>
-    </div><!-- /header -->
+      <h1>Primary Colors</h1> <!-- title for the header of the page -->
+    </div><!-- header -->
 
     <div data-role="content">
-      <h2>Push button to take picture.</h2>
+      <h2>Push button to take picture.</h2> <!-- instructions displayed to the user -->
       <div>
         Press orange button to create or choose image file:
-        <input type="file" id="fileInput" STYLE="background-color: #FF6600;">
+        <input type="file" id="fileInput" STYLE="background-color: #FF6600;"> <!-- button for file input to choose an image -->
       </div>
-      <div id="messageDisplayArea"></div>
+      <div id="messageDisplayArea"></div> <!-- area to display messages to the user -->
 
       <!-- First Canvas: Original Image -->
-      <canvas id="myCanvas" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas>
+        <canvas id="myCanvas" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas> <!-- canvas to display the original image -->
 
       <!-- Second Canvas: Only Blue Intensities -->
-      <canvas id="myCanvasBlue" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas>
+        <canvas id="myCanvasBlue" width=600 height=500 style="border:1px solid #d3d3d3;"></canvas> <!-- canvas to display the blue intensities -->
 
       <script> 
-        /* This script initiates the canvas and puts the text on the canvas "myCanvas" */
-        var canvas = document.getElementById('myCanvas');
-        var context = canvas.getContext("2d");
-        context.font = '20pt Calibri';
-        context.fillStyle = "black";
-        context.fillText("Original image will go here", 10, 20);
+        /* this script initiates the canvas and puts the text on the canvas "myCanvas" */
+        var canvas = document.getElementById('myCanvas'); /* gets the first canvas element */
+        var context = canvas.getContext("2d"); /* gets the 2D context of the first canvas */
+        context.font = '20pt Calibri'; /* sets the font for the text */
+        context.fillStyle = "black"; /* sets the text color */
+        context.fillText("Original image will go here", 10, 20); /* draws the text on the canvas */
 
-        var canvasBlue = document.getElementById('myCanvasBlue');
-        var contextBlue = canvasBlue.getContext("2d");
-        contextBlue.font = '20pt Calibri';
-        contextBlue.fillStyle = "black";
-        contextBlue.fillText("Blue intensities will go here", 10, 20);
+        var canvasBlue = document.getElementById('myCanvasBlue'); /* gets the second canvas element */
+        var contextBlue = canvasBlue.getContext("2d"); /* gets the 2D context of the second canvas */
+        contextBlue.font = '20pt Calibri'; /* sets the font for the text */
+        contextBlue.fillStyle = "black"; /* sets the text color */
+        contextBlue.fillText("Blue intensities will go here", 10, 20); /* draws the text on the second canvas */
       </script>
 
-    </div><!-- /content -->
+    </div><!-- content -->
 
     <div data-role="footer" data-position="fixed">
-      <p>DIY Diagnostics</p>
-    </div><!-- /footer -->
-  </div><!-- /page -->
+      <p>DIY Diagnostics</p> <!-- footer content -->
+    </div><!-- footer -->
+  </div><!-- page -->
 </body>
 
 </html>
